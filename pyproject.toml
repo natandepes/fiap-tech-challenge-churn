@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=70"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "churn-nn"
+version = "0.1.0"
+description = "Churn prediction MLP — FIAP PosTech Tech Challenge 1"
+requires-python = ">=3.11"
+dependencies = [
+    "torch>=2.3",
+    "scikit-learn>=1.5",
+    "mlflow>=2.14",
+    "fastapi>=0.111",
+    "uvicorn[standard]>=0.30",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "pydantic>=2.7",
+    "pandera>=0.19",
+]
+
+[project.optional-dependencies]
+dev = [
+    "jupyter>=1.0",
+    "ipykernel>=6.0",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    "pytest>=8.0",
+    "httpx>=0.27",
+    "ruff>=0.4",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
