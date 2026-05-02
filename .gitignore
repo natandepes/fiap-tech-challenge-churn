@@ -1,5 +1,9 @@
 # IA context — não commitar
 CLAUDE.md
+docs/superpowers/
+
+# Worktrees
+.worktrees/
 
 # Python
 __pycache__/
