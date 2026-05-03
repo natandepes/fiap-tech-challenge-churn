@@ -61,7 +61,6 @@ def main() -> None:
     preprocessor = build_preprocessor()
     X_train_t = preprocessor.fit_transform(X_train)
     X_val_t = preprocessor.transform(X_val)
-    X_test_t = preprocessor.transform(X_test)
     joblib.dump(preprocessor, MODELS_DIR / "preprocessor.pkl")
     logger.info("Preprocessor salvo em models/preprocessor.pkl")
 
@@ -76,7 +75,9 @@ def main() -> None:
             torch.tensor(y_arr, dtype=torch.float32).unsqueeze(1),
         )
         generator = torch.Generator().manual_seed(SEED)
-        return DataLoader(ds, batch_size=BATCH_SIZE, shuffle=shuffle, generator=generator)
+        return DataLoader(
+            ds, batch_size=BATCH_SIZE, shuffle=shuffle, generator=generator
+        )
 
     train_loader = make_loader(X_train_t, y_train, shuffle=True)
     val_loader = make_loader(X_val_t, y_val, shuffle=False)
