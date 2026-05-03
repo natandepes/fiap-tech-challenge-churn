@@ -117,7 +117,7 @@ def main() -> None:
 
     with mlflow.start_run(run_name="mlp-pytorch"):
         mlflow.set_tags({
-            "stage": "production",
+            "stage": "candidate",
             "model_type": "neural_network",
             "git_commit": git_commit,
         })
