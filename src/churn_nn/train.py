@@ -1,12 +1,14 @@
 # src/churn_nn/train.py
 import logging
 import random
+import subprocess
 from pathlib import Path
 
 import joblib
 import mlflow
 import mlflow.pytorch
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 from sklearn.metrics import (
@@ -99,7 +101,27 @@ def main() -> None:
     mlflow.set_tracking_uri(MLFLOW_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
 
+    try:
+        git_commit = subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.DEVNULL
+        ).decode().strip()
+    except Exception:
+        git_commit = "unknown"
+
+    mlflow_dataset = mlflow.data.from_pandas(
+        pd.read_csv(DATA_PATH),
+        source=DATA_PATH,
+        name="telco-churn",
+        targets="Churn",
+    )
+
     with mlflow.start_run(run_name="mlp-pytorch"):
+        mlflow.set_tags({
+            "stage": "production",
+            "model_type": "neural_network",
+            "git_commit": git_commit,
+        })
+        mlflow.log_input(mlflow_dataset, context="training")
         mlflow.log_params(
             {
                 "model": "MLP",
