@@ -1,16 +1,18 @@
+PYTHON := .venv/bin/python
+
 .PHONY: install lint test train run
 
 install:
-	pip install -e ".[dev]"
+	$(PYTHON) -m pip install -e ".[dev]"
 
 lint:
-	ruff check src/ tests/
+	$(PYTHON) -m ruff check src/ tests/
 
 test:
-	pytest tests/ -v
+	$(PYTHON) -m pytest tests/ -v
 
 train:
-	python -m churn_nn.train
+	$(PYTHON) -m churn_nn.train
 
 run:
-	uvicorn churn_nn.api.app:app --reload --port 8000
+	$(PYTHON) -m uvicorn churn_nn.api.app:app --reload --port 8000
