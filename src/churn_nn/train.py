@@ -153,7 +153,11 @@ def main() -> None:
                 epochs_without_improvement += 1
 
             if epochs_without_improvement >= PATIENCE:
-                logger.info("Early stopping na época %d", epoch)
+                logger.info(
+                    "Early stopping na época %d — melhor val_loss: %.4f",
+                    epoch,
+                    best_val_loss,
+                )
                 break
 
         model.load_state_dict(best_weights)
