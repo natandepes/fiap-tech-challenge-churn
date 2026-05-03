@@ -2,11 +2,20 @@ import logging
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
 logger = logging.getLogger(__name__)
 
-NUMERIC_FEATURES = ["SeniorCitizen", "tenure", "MonthlyCharges", "TotalCharges"]
+NUMERIC_FEATURES = [
+    "SeniorCitizen",
+    "tenure",
+    "MonthlyCharges",
+    "TotalCharges",
+    "monthly_x_tenure",
+    "one_year_x_tenure",
+    "two_year_x_tenure",
+]
 CATEGORICAL_FEATURES = [
     "gender",
     "Partner",
@@ -26,6 +35,18 @@ CATEGORICAL_FEATURES = [
 ]
 
 
+def _add_interaction_terms(X: pd.DataFrame) -> pd.DataFrame:
+    """Contract × tenure: cada tipo de contrato recebe um coeficiente separado."""
+    X = X.copy()
+    is_monthly = (X["Contract"] == "Month-to-month").astype(float)
+    is_one_year = (X["Contract"] == "One year").astype(float)
+    is_two_year = (X["Contract"] == "Two year").astype(float)
+    X["monthly_x_tenure"] = is_monthly * X["tenure"]
+    X["one_year_x_tenure"] = is_one_year * X["tenure"]
+    X["two_year_x_tenure"] = is_two_year * X["tenure"]
+    return X
+
+
 def load_data(path: str) -> pd.DataFrame:
     df = pd.read_csv(path)
     df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
@@ -35,8 +56,8 @@ def load_data(path: str) -> pd.DataFrame:
     return df
 
 
-def build_preprocessor() -> ColumnTransformer:
-    return ColumnTransformer(
+def build_preprocessor() -> Pipeline:
+    column_transformer = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), NUMERIC_FEATURES),
             (
@@ -44,5 +65,11 @@ def build_preprocessor() -> ColumnTransformer:
                 OneHotEncoder(drop="if_binary", sparse_output=False),
                 CATEGORICAL_FEATURES,
             ),
+        ]
+    )
+    return Pipeline(
+        [
+            ("interactions", FunctionTransformer(_add_interaction_terms, validate=False)),  # noqa: E501
+            ("transform", column_transformer),
         ]
     )
