@@ -99,7 +99,7 @@ def main() -> None:
     mlflow.set_tracking_uri(MLFLOW_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
 
-    with mlflow.start_run(run_name="MLP-modulo"):
+    with mlflow.start_run(run_name="mlp-pytorch"):
         mlflow.log_params(
             {
                 "model": "MLP",
