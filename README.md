@@ -1,4 +1,4 @@
-# Churn Prediction — FIAP PosTech ML
+# Churn Prediction: FIAP PosTech ML
 
 Modelo preditivo de churn para operadora de telecomunicações. Pipeline end-to-end: EDA → MLP PyTorch → API de inferência, com tracking via MLflow e testes automatizados.
 
@@ -10,7 +10,7 @@ Modelo preditivo de churn para operadora de telecomunicações. Pipeline end-to-
 
 **Solução:** MLP (Multilayer Perceptron) treinado com PyTorch que classifica clientes com alta probabilidade de cancelamento, comparada com baselines Scikit-Learn e servida via FastAPI.
 
-**Dataset:** Telco Customer Churn (IBM) — 7.043 clientes, 19 features, classificação binária (26,5% churn).
+**Dataset:** Telco Customer Churn (IBM): 7.043 clientes, 19 features, classificação binária (26,5% churn).
 
 ---
 
@@ -28,11 +28,11 @@ Threshold rebaixado para 0.4 para priorizar recall: falsos negativos (churns nã
 
 ---
 
-## Stack Técnica
+## Tech Stack
 
 | Ferramenta | Uso |
 |---|---|
-| PyTorch | MLP — arquitetura, treino, early stopping |
+| PyTorch | MLP: arquitetura, treino, early stopping |
 | Scikit-Learn | Pipeline de pré-processamento + baselines |
 | MLflow | Tracking de experimentos (params, métricas, artefatos) |
 | FastAPI | API de inferência |
@@ -47,9 +47,11 @@ Threshold rebaixado para 0.4 para priorizar recall: falsos negativos (churns nã
 
 **Pré-requisitos:** Python 3.11+, make
 
+> **Windows:** recomendo o uso do WSL (Windows Subsystem for Linux). Além de ser necessário para os comandos `make`, o WSL oferece um ambiente muito mais compatível com o ecossistema Python/ML em geral: gerenciamento de dependências, scripts de treino e ferramentas de linha de comando funcionam de forma mais confiável do que no PowerShell ou CMD.
+
 ```bash
-# Criar virtualenv (obrigatório antes do make install)
-python3.11 -m venv .venv
+# Criar virtualenv
+python -m venv .venv
 
 # Instalar dependências em virtualenv
 make install
@@ -57,7 +59,7 @@ make install
 # Verificar linting
 make lint
 
-# Treinar o modelo (obrigatório antes de rodar a API ou os testes)
+# Treinar o modelo
 make train
 
 # Rodar testes
@@ -67,9 +69,7 @@ make test
 make run
 ```
 
-> **Atenção:** `make run` e `make test` requerem que `make train` tenha sido executado ao menos uma vez. Os artefatos de modelo (`models/`) não são versionados no repositório.
-
-> **Windows:** os comandos `make` requerem WSL.
+> **Atenção:** `make run` requer que `make train` tenha sido executado ao menos uma vez. Os artefatos de modelo (`models/`) não são versionados no repositório. Antes de treinar o modelo também não é possível executar todos os testes com `make test`.
 
 ---
 
@@ -107,42 +107,16 @@ GET  /health  → status + model_version
 
 ## Estrutura do Repositório
 
-```
-.
-├── src/churn_nn/
-│   ├── config.py              # Hiperparâmetros e paths centralizados
-│   ├── train.py               # Script de treino (make train)
-│   ├── data/
-│   │   └── preprocessing.py   # load_data(), build_preprocessor()
-│   ├── models/
-│   │   └── mlp.py             # class ChurnMLP(nn.Module)
-│   └── api/
-│       ├── app.py             # FastAPI: /health, /predict, middleware
-│       └── schemas.py         # Pydantic: CustomerFeatures, PredictionResponse
-├── tests/
-│   ├── conftest.py            # Fixtures compartilhadas
-│   ├── test_schema.py         # Pandera: valida schema do CSV bruto
-│   ├── test_preprocessing.py  # Unitário: preprocessor fit/transform
-│   ├── test_smoke.py          # Smoke: ChurnMLP.forward() não quebra
-│   └── test_api.py            # API: /health 200, /predict 200 e 422
-├── notebooks/
-│   ├── 01-eda.ipynb           # Análise exploratória completa
-│   ├── 02-baselines.ipynb     # DummyClassifier + Regressão Logística
-│   └── 03-mlp.ipynb           # Desenvolvimento e avaliação da MLP
-├── docs/
-│   ├── ml-canvas.md           # ML Canvas: stakeholders, métricas, SLOs
-│   ├── model-card.md          # Model Card: performance, limitações, fairness
-│   ├── deploy-architecture.md # Arquitetura de deploy: batch vs real-time
-│   └── monitoring-plan.md     # Plano de monitoramento e playbook
-├── data/
-│   └── raw/telco-churn.csv    # Dataset original (nunca modificar)
-├── models/                    # Artefatos gerados por make train (não versionados)
-│   ├── mlp_best.pt
-│   ├── preprocessor.pkl
-│   └── model_metadata.json
-├── pyproject.toml             # Dependências, ruff, pytest
-└── Makefile                   # install, lint, test, train, run
-```
+| Pasta / Arquivo | Conteúdo |
+|---|---|
+| `src/churn_nn/` | Código-fonte: ingestão, pré-processamento, arquitetura do MLP e API FastAPI |
+| `tests/` | Testes automatizados: schema (pandera), unitários, smoke e API |
+| `notebooks/` | EDA, baselines e desenvolvimento da MLP (exploração e análise) |
+| `docs/` | ML Canvas, Model Card, arquitetura de deploy e plano de monitoramento |
+| `data/raw/` | Dataset original (nunca modificar) |
+| `models/` | Artefatos gerados pelo `make train` (não versionados no repositório) |
+| `pyproject.toml` | Dependências, configuração do ruff e pytest |
+| `Makefile` | Atalhos: `install`, `lint`, `test`, `train`, `run` |
 
 ---
 
@@ -205,7 +179,7 @@ curl -X POST http://localhost:8000/predict \
   "churn": true,
   "probability": 0.8312,
   "threshold": 0.4,
-  "model_version": "ca147906"
+  "model_version": "v1.0.0"
 }
 ```
 
@@ -217,18 +191,18 @@ curl -X POST http://localhost:8000/predict \
 make test
 ```
 
-| Suite | O que verifica |
-|---|---|
-| `test_schema.py` | Schema do CSV bruto com pandera (tipos, nulls, domínio de valores) |
-| `test_preprocessing.py` | `build_preprocessor()` fit/transform sem erros; dimensão de saída correta |
-| `test_smoke.py` | `ChurnMLP.forward()` retorna tensor com shape correto |
-| `test_api.py` | `/health` retorna 200; `/predict` válido retorna 200; inválido retorna 422 |
+A suíte cobre quatro camadas:
+
+- **Dados**: valida o schema do CSV bruto (tipos, nulos, domínio de valores) com pandera
+- **Pré-processamento**: verifica que o pipeline produz a dimensão de saída correta
+- **Modelo**: smoke test confirma que o forward pass da MLP não quebra
+- **API**: testa `/health` e `/predict` para respostas válidas e rejeição de inputs inválidos
 
 ---
 
 ## Documentação
 
-- [`docs/ml-canvas.md`](docs/ml-canvas.md) — ML Canvas: stakeholders, métricas de negócio, SLOs
-- [`docs/model-card.md`](docs/model-card.md) — Model Card: performance, limitações, fairness
-- [`docs/deploy-architecture.md`](docs/deploy-architecture.md) — Arquitetura de deploy com trade-offs
-- [`docs/monitoring-plan.md`](docs/monitoring-plan.md) — Plano de monitoramento e playbook de resposta
+- [`docs/ml-canvas.md`](docs/ml-canvas.md): ML Canvas com stakeholders, métricas de negócio e SLOs
+- [`docs/model-card.md`](docs/model-card.md): Model Card com performance, limitações e fairness
+- [`docs/deploy-architecture.md`](docs/deploy-architecture.md): arquitetura de deploy com trade-offs
+- [`docs/monitoring-plan.md`](docs/monitoring-plan.md): plano de monitoramento e playbook de resposta
