@@ -29,6 +29,8 @@ docs/       Model Card e documentação
 
 ## Comandos
 
+> **Windows:** os comandos `make` requerem WSL ou Git Bash.
+
 ```bash
 make lint     # Linting com ruff
 make test     # Rodar testes (pytest)
@@ -42,15 +44,8 @@ Os experimentos são rastreados em um banco SQLite local (`mlruns.db`) gerado au
 
 Para abrir a UI do MLflow após treinar:
 
-**Linux/macOS**
 ```bash
 source .venv/bin/activate
-mlflow ui --backend-store-uri sqlite:///mlruns.db
-```
-
-**Windows**
-```bat
-.venv\Scripts\activate
 mlflow ui --backend-store-uri sqlite:///mlruns.db
 ```
 
