@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 Contract = Literal["Month-to-month", "One year", "Two year"]
 InternetService = Literal["DSL", "Fiber optic", "No"]
@@ -16,9 +16,9 @@ YesNoInternet = Literal["Yes", "No", "No internet service"]
 
 
 class CustomerFeatures(BaseModel):
-    tenure: int
-    MonthlyCharges: float
-    TotalCharges: float
+    tenure: int = Field(ge=0)
+    MonthlyCharges: float = Field(ge=0)
+    TotalCharges: float = Field(ge=0)
     SeniorCitizen: Literal[0, 1]
     gender: Literal["Male", "Female"]
     Partner: YesNo
