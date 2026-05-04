@@ -129,12 +129,14 @@
 
 ## 9. Critérios de Go/No-Go para Produção
 
-- [ ] AUC-ROC >= 0.80 no conjunto de teste
-- [ ] PR-AUC >= 0.60 no conjunto de teste
-- [ ] Recall (churn) >= 0.70 com threshold = 0.4
-- [ ] Todos os testes automatizados passando (`pytest`)
-- [ ] API respondendo em < 200 ms no p95
-- [ ] Model Card preenchido com limitações documentadas
+- [x] AUC-ROC >= 0.80 no conjunto de teste (**atingido: 0.848**)
+- [x] PR-AUC >= 0.60 no conjunto de teste (**atingido: 0.633**)
+- [x] Recall (churn) >= 0.70 com threshold = 0.4 (**atingido: 0.886**)
+- [x] Todos os testes automatizados passando (`pytest`)
+- [x] API respondendo em < 200 ms no p95
+- [x] Model Card preenchido com limitações documentadas
+
+**Observação sobre precisão:** a meta de precisão >= 0.55 não foi atingida (resultado: 0.450). O desvio é consequência direta do threshold=0.4, escolhido deliberadamente para priorizar recall dado o custo assimétrico dos erros: falsos negativos (churns não detectados) implicam perda total da receita futura, enquanto falsos positivos custam apenas R$35 por ação de retenção desnecessária. O trade-off é consciente, documentado no Model Card e validado pelas premissas de custo da Seção 4.
 
 ---
 
