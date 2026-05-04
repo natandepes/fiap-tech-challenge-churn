@@ -50,6 +50,10 @@ Threshold rebaixado para 0.4 para priorizar recall: falsos negativos (churns nã
 > **Windows:** recomendo o uso do WSL (Windows Subsystem for Linux). Além de ser necessário para os comandos `make`, o WSL oferece um ambiente muito mais compatível com o ecossistema Python/ML em geral: gerenciamento de dependências, scripts de treino e ferramentas de linha de comando funcionam de forma mais confiável do que no PowerShell ou CMD.
 
 ```bash
+# Clonar o repositório
+git clone https://github.com/natandepes/fiap-tech-challenge-churn
+cd fiap-tech-challenge-churn
+
 # Criar virtualenv
 python -m venv .venv
 
