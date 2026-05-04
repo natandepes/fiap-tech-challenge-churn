@@ -1,6 +1,6 @@
-# Arquitetura de Deploy — Churn Prediction
+# Arquitetura de Deploy: Churn Prediction
 
-## Contexto de Decisão
+## Contexto
 
 O modelo ChurnMLP é usado para **retenção proativa de clientes**: a equipe de CRM recebe uma lista de clientes com alto risco de churn e executa campanhas de contato. A arquitetura de deploy deve servir esse processo da forma mais eficiente e confiável possível.
 
@@ -14,7 +14,7 @@ Dois modos são possíveis: **batch** (processamento periódico de toda a base) 
 |---|---|---|
 | **Latência** | Alta (minutos a horas por execução) | Baixa (< 200ms por requisição) |
 | **Throughput** | Alto (toda a base de uma vez) | Baixo a médio (depende de carga) |
-| **Custo operacional** | Baixo (executa sob demanda) | Alto (infraestrutura permanente 24/7) |
+| **Custo operacional** | Baixo (executa sob demanda) | Variável: serverless (Cloud Run) cobra por uso, mas instâncias dedicadas têm custo fixo 24/7 |
 | **Complexidade de manutenção** | Baixa (script + cron) | Alta (serving, autoscaling, SLOs) |
 | **Debugging** | Simples (saída é arquivo auditável) | Complexo (erros em tempo real, logs distribuídos) |
 | **Alinhamento ao caso de uso** | Alto (campanhas são mensais) | Médio (útil para consultas pontuais) |
@@ -31,15 +31,15 @@ O processo de retenção de clientes é orientado a **campanhas periódicas**: a
 
 1. **Alinhamento com o ciclo de negócio:** campanhas de retenção são planejadas com antecedência e executadas em blocos. Não há benefício operacional em ter predições sub-segundo quando a ação vai acontecer em dias.
 
-2. **Custo:** o batch roda uma vez por mês, sem infraestrutura permanente. A API exigiria um container ativo 24/7, com custo fixo mesmo em períodos sem uso.
+2. **Custo e cold start:** a API exigiria um container ativo 24/7, com custo fixo mesmo em períodos sem uso. Plataformas serverless (Cloud Run, Railway) eliminam o custo ocioso da API cobrando por invocação. Porém, para modelos PyTorch, o cold start é um problema real: carregar `mlp_best.pt` + `preprocessor.pkl` do zero pode levar vários segundos, tornando a primeira requisição após inatividade inaceitavelmente lenta. Manter a instância aquecida (*min-instances=1*) resolve o cold start, mas reintroduz o custo fixo. O batch evita esses trade-offs inteiramente, ele rodaria uma vez por mês sem infraestrutura permanente.
 
-3. **Simplicidade e confiabilidade:** um script Python agendado tem menos pontos de falha que uma API com autoscaling, balanceamento de carga e SLOs de latência. Para um modelo que roda mensalmente, essa complexidade não se justifica.
+3. **Simplicidade e confiabilidade:** um script Python agendado tem menos pontos de falha que um serviço com autoscaling, balanceamento de carga e SLOs de latência. Para um modelo que roda mensalmente, essa complexidade não se justifica.
 
 4. **Auditabilidade:** o output do batch é um arquivo CSV versionável, com todas as predições rastreáveis. Erros são detectáveis e corrigíveis offline antes de qualquer ação.
 
 **Quando o real-time faz sentido (complementar):**
 
-A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer consultar o score de um cliente específico durante uma ligação, ou um sistema de automação que precisa de predição ao cadastrar um novo contrato. Esses são usos secundários — úteis, mas não o fluxo principal.
+A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer consultar o score de um cliente específico durante uma ligação, ou um sistema de automação que precisa de predição ao cadastrar um novo contrato. Esses são usos secundários, úteis, mas não o fluxo principal.
 
 ---
 
@@ -76,7 +76,7 @@ A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer c
 
 ---
 
-## Fluxo Real-Time (Complementar)
+## Fluxo Real-Time (Secundário)
 
 ```
 [Sistema CRM / Frontend]
@@ -109,7 +109,7 @@ A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer c
 
 ---
 
-## Proposta de Infraestrutura (Sem Implementação)
+## Proposta de Infraestrutura
 
 ### Batch
 
@@ -128,4 +128,4 @@ A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer c
 | Serving | Cloud Run (GCP), Railway, ou ECS Fargate (AWS) |
 | Health check | `GET /health` → `{"status": "ok", "model_version": "..."}` |
 | Escalabilidade | Autoscaling por CPU/requisições no serviço gerenciado |
-| Segredos | Variáveis de ambiente para `MODELS_DIR` |
+| Segredos | Variáveis de ambiente |

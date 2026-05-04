@@ -1,21 +1,21 @@
-# Model Card — ChurnMLP
+# Model Card: ChurnMLP
 
 ## Identificação
 
 | Campo | Valor |
 |---|---|
 | **Nome** | ChurnMLP |
-| **Versão** | ver `models/model_metadata.json` → campo `model_version` (hash do run MLflow) |
-| **Data de treino** | Registrada automaticamente no MLflow (experimento `telco-churn`) |
-| **Desenvolvedor** | Natan Depes — FIAP PosTech ML (2026) |
+| **Versão** | v1.0.0 |
+| **Data de treino** | 2026-05-04 |
+| **Desenvolvedor** | Natan Depes, FIAP PosTech ML (2026) |
 | **Licença** | Uso acadêmico |
-| **Repositório** | Tech Challenge Fase 1 — Churn NN |
+| **Repositório** | Tech Challenge Fase 1: Churn NN |
 
 ---
 
 ## Arquitetura
 
-**Tipo:** Multilayer Perceptron (MLP) — PyTorch
+**Tipo:** Multilayer Perceptron (MLP), PyTorch
 
 **Topologia:**
 ```
@@ -82,7 +82,7 @@ Os seguintes atributos demograficamente sensíveis estão presentes no dataset e
 | Atributo | Tipo | Observação |
 |---|---|---|
 | `gender` | Categórico (Male/Female) | Cramér's V ≈ 0 com churn (EDA); baixo poder preditivo |
-| `SeniorCitizen` | Binário (0/1) | Cramér's V moderado; 41,7% vs 24,6% de churn |
+| `SeniorCitizen` | Binário (0/1) | Cramér's V moderado; taxa de churn de 41,7% entre idosos vs 24,6% entre não-idosos |
 | `Partner` | Categórico (Yes/No) | Cramér's V próximo de 0 (EDA) |
 | `Dependents` | Categórico (Yes/No) | Correlação fraca com churn |
 
@@ -97,7 +97,7 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 
 ## Dados de Treinamento
 
-**Dataset:** Telco Customer Churn — IBM Sample Data  
+**Dataset:** Telco Customer Churn (IBM Sample Data)  
 **Volume:** 7.043 registros, 19 features + 1 target  
 **Desbalanceamento:** 26,5% churn (1.869) vs 73,5% não-churn (5.174)
 
@@ -108,7 +108,7 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 
 **Pré-processamento:**
 - `TotalCharges`: convertida de object para float64 (API aceita o campo); **removida do modelo** (r=0.83 com `tenure`, alta multicolinearidade)
-- `tenure`: **não entra diretamente** no modelo — substituída por 3 termos de interação Contract×tenure
+- `tenure`: **não entra diretamente** no modelo; substituída por 3 termos de interação Contract×tenure
 - `gender`, `PhoneService`: removidas (Cramér's V ≈ 0 com target na EDA)
 - `customerID`: removida (identificador, sem sinal preditivo)
 - **Termos de interação criados:** `monthly_x_tenure`, `one_year_x_tenure`, `two_year_x_tenure`
@@ -122,9 +122,9 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 
 | Limitação | Severidade | Detalhe |
 |---|---|---|
-| **Dataset estático** | Alta | Sem drift temporal real — modelo pode degradar com mudanças de mercado, novos planos ou comportamentos emergentes |
+| **Dataset estático** | Alta | Sem drift temporal real; modelo pode degradar com mudanças de mercado, novos planos ou comportamentos emergentes |
 | **Representatividade geográfica** | Média | Dataset IBM/EUA; comportamento de churn pode diferir significativamente em mercado brasileiro |
-| **Viés Fiber Optic** | Média | 42% de taxa de churn nesse segmento vs 19% (DSL) — modelo pode ser sistematicamente mais agressivo para clientes de fibra óptica |
+| **Viés Fiber Optic** | Média | 42% de taxa de churn nesse segmento vs 19% (DSL); modelo pode ser sistematicamente mais agressivo para clientes de fibra óptica |
 | **Fairness não auditada** | Média | Possível disparidade de performance por grupo demográfico (`gender`, `SeniorCitizen`) não investigada |
 | **Precisão abaixo da meta** | Baixa | 0.450 vs meta ≥ 0.55; consequência do threshold=0.4; aceitável dado o trade-off de custo documentado |
 | **Clientes novos (tenure=0)** | Baixa | Apenas 11 registros no treino; predições menos confiáveis para clientes recém-adquiridos |
@@ -146,11 +146,12 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 
 ## Critérios de Go/No-Go para Produção
 
-Reaproveitados do ML Canvas (seção 9):
+| Critério | Limiar | Resultado |
+|---|---|---|
+| AUC-ROC | ≥ 0.80 | 0.848 |
+| PR-AUC | ≥ 0.60 | 0.633 |
+| Recall (churn, threshold = 0.4) | ≥ 0.70 | 0.886 |
+| Testes automatizados (`pytest`) | 100% passando | 12/12 |
+| Latência p95 | < 200ms | 15ms |
 
-- [ ] AUC-ROC ≥ 0.80 no conjunto de teste → **0.848 ✅**
-- [ ] PR-AUC ≥ 0.60 no conjunto de teste → **0.633 ✅**
-- [ ] Recall (churn) ≥ 0.70 com threshold = 0.4 → **0.886 ✅**
-- [ ] Todos os testes automatizados passando (`pytest`) → verificar com `make test`
-- [ ] API respondendo em < 200ms no p95 → verificar com `make run` + teste de carga
-- [ ] Model Card preenchido com limitações documentadas → **este documento**
+**Obs.:** latência medida via FastAPI TestClient; não inclui overhead de rede ou uvicorn. Requer teste de carga externo para validação em produção real.
