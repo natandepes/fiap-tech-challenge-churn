@@ -39,6 +39,7 @@ select = ["E", "F", "I", "UP"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-rs"
 
 [tool.setuptools.packages.find]
 where = ["src"]

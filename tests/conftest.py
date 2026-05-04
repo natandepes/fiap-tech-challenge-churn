@@ -29,8 +29,11 @@ SAMPLE_CUSTOMER = {
 
 @pytest.fixture(scope="session")
 def client():
-    if not (Path("models") / "preprocessor.pkl").exists():
-        pytest.skip("Artefatos não encontrados. Execute 'make train' antes de 'make test'.")  # noqa: E501
+    artifacts_missing = not (Path("models") / "preprocessor.pkl").exists() or not (
+        Path("models") / "model_metadata.json"
+    ).exists()
+    if artifacts_missing:
+        pytest.skip("Artefatos de modelo não encontrados. Execute 'make train'.")
     from churn_nn.api.app import app
 
     with TestClient(app) as c:
