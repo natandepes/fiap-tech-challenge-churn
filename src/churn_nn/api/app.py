@@ -9,6 +9,8 @@ import joblib
 import pandas as pd
 import torch
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from churn_nn.models.mlp import ChurnMLP
@@ -72,6 +74,23 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Churn Prediction API", lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    missing, invalid = [], []
+    for err in exc.errors():
+        field = err["loc"][-1] if err["loc"] else "unknown"
+        if err["type"] == "missing":
+            missing.append(field)
+        else:
+            invalid.append({"field": field, "error": err["msg"]})
+    return JSONResponse(
+        status_code=422,
+        content={"missing_fields": missing, "invalid_fields": invalid},
+    )
 
 
 @app.middleware("http")
