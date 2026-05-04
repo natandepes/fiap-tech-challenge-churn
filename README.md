@@ -36,6 +36,19 @@ make train    # Treinar o modelo
 make run      # Subir a API localmente
 ```
 
+## MLflow
+
+Os experimentos são rastreados em um banco SQLite local (`mlruns.db`) gerado automaticamente pelo `make train`.
+
+Para abrir a UI do MLflow após treinar:
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlruns.db
+```
+
+Acesse [http://localhost:5000](http://localhost:5000) no navegador.  
+O experimento aparece com o nome **telco-churn**.
+
 ## Dataset
 
 Telco Customer Churn (IBM) — ~7.000 clientes, ~20 features, classificação binária.
