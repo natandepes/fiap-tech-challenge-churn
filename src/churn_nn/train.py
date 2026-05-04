@@ -1,10 +1,8 @@
 # src/churn_nn/train.py
 import json
 import logging
-import os
 import random
 import subprocess
-from pathlib import Path
 
 import joblib
 import mlflow
@@ -28,8 +26,10 @@ from torch.utils.data import DataLoader, TensorDataset
 
 from churn_nn.config import (
     BATCH_SIZE,
+    DATA_PATH,
     LR,
     MAX_EPOCHS,
+    MODELS_DIR,
     PATIENCE,
     SEED,
     THRESHOLD,
@@ -45,8 +45,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-DATA_PATH = "data/raw/telco-churn.csv"
-MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 MLFLOW_URI = "sqlite:///mlruns.db"
 EXPERIMENT_NAME = "telco-churn"
 

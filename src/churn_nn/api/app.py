@@ -1,10 +1,8 @@
 import asyncio
 import json
 import logging
-import os
 import time
 from contextlib import asynccontextmanager
-from pathlib import Path
 from typing import Any
 
 import joblib
@@ -15,23 +13,33 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from churn_nn.api.schemas import CustomerFeatures, PredictionResponse
-from churn_nn.config import THRESHOLD
+from churn_nn.config import MODELS_DIR, THRESHOLD
 from churn_nn.models.mlp import ChurnMLP
 
 logger = logging.getLogger(__name__)
-
-_DEFAULT_MODELS_DIR = Path(__file__).resolve().parents[3] / "models"
-MODELS_DIR = Path(os.getenv("MODELS_DIR", _DEFAULT_MODELS_DIR))
 
 _state: dict[str, Any] = {}
 
 
 def _load_artifacts() -> None:
-    metadata = json.loads((MODELS_DIR / "model_metadata.json").read_text())
-    preprocessor = joblib.load(MODELS_DIR / "preprocessor.pkl")
+    metadata_path = MODELS_DIR / "model_metadata.json"
+    preprocessor_path = MODELS_DIR / "preprocessor.pkl"
+    weights_path = MODELS_DIR / "mlp_best.pt"
+
+    missing = [
+        str(p) for p in (metadata_path, preprocessor_path, weights_path)
+        if not p.exists()
+    ]
+    if missing:
+        raise FileNotFoundError(
+            f"Artefatos ausentes em '{MODELS_DIR}': {missing}. Execute 'make train'."
+        )
+
+    metadata = json.loads(metadata_path.read_text())
+    preprocessor = joblib.load(preprocessor_path)
     model = ChurnMLP(metadata["input_dim"])
     model.load_state_dict(
-        torch.load(MODELS_DIR / "mlp_best.pt", map_location="cpu", weights_only=True)
+        torch.load(weights_path, map_location="cpu", weights_only=True)
     )
     model.eval()
     _state["preprocessor"] = preprocessor
