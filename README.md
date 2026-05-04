@@ -29,9 +29,10 @@ docs/       Model Card e documentação
 
 ## Comandos
 
-> **Windows:** os comandos `make` requerem WSL ou Git Bash.
+> **Windows:** os comandos `make` requerem WSL (recomendado).
 
 ```bash
+make install  # Instalar dependências no venv
 make lint     # Linting com ruff
 make test     # Rodar testes (pytest)
 make train    # Treinar o modelo
