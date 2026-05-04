@@ -39,6 +39,8 @@ make train    # Treinar o modelo
 make run      # Subir a API localmente
 ```
 
+> **Atenção:** `make run` e `make test` (testes de API) requerem que `make train` tenha sido executado ao menos uma vez. Os artefatos (`models/`) não são versionados no repositório.
+
 ## MLflow
 
 Os experimentos são rastreados em um banco SQLite local (`mlruns.db`) gerado automaticamente pelo `make train`.
