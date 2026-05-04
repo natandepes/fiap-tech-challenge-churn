@@ -7,7 +7,8 @@ from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardSc
 
 logger = logging.getLogger(__name__)
 
-# gender, PhoneService removidos (Cramér's V ≈ 0 com target); TotalCharges removido (r=0.83 com tenure)
+# gender, PhoneService removidos (Cramér's V ≈ 0 com target)
+# TotalCharges removido (r=0.83 com tenure)
 # tenure omitido: sum(monthly_x + one_year_x + two_year_x) == tenure, coluna redundante
 NUMERIC_FEATURES = [
     "MonthlyCharges",

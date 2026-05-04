@@ -28,7 +28,7 @@ def test_predict_campo_faltando_retorna_422(client):
 
 
 def test_predict_risco_alto_maior_que_risco_baixo(client):
-    """Modelo deve atribuir probabilidade maior a cliente de alto risco vs baixo risco."""
+    """Modelo deve atribuir probabilidade maior a cliente de alto risco vs baixo risco."""  # noqa: E501
     alto_risco = {
         "tenure": 1,
         "MonthlyCharges": 95.0,
