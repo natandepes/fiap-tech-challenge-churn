@@ -29,6 +29,7 @@ env/
 models/*.pt
 models/*.pkl
 models/*.pth
+models/*.json
 mlruns/
 mlartifacts/
 

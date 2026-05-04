@@ -1,4 +1,5 @@
 # src/churn_nn/train.py
+import json
 import logging
 import random
 import subprocess
@@ -76,10 +77,12 @@ def main() -> None:
     X_train_t = preprocessor.fit_transform(X_train)
     X_val_t = preprocessor.transform(X_val)
     X_test_t = preprocessor.transform(X_test)
-    joblib.dump(preprocessor, MODELS_DIR / "preprocessor.pkl")
-    logger.info("Preprocessor salvo em models/preprocessor.pkl")
-
     input_dim = X_train_t.shape[1]
+    joblib.dump(preprocessor, MODELS_DIR / "preprocessor.pkl")
+    (MODELS_DIR / "model_metadata.json").write_text(
+        json.dumps({"input_dim": input_dim})
+    )
+    logger.info("Preprocessor salvo em models/preprocessor.pkl")
     n_pos = int(y_train.sum())
     n_neg = len(y_train) - n_pos
     pos_weight = torch.tensor([n_neg / n_pos])
