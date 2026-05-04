@@ -11,6 +11,9 @@ import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
+from mlflow.data.sources import LocalArtifactDatasetSource
+from mlflow.models.signature import ModelSignature
+from mlflow.types.schema import Schema, TensorSpec
 from sklearn.metrics import (
     average_precision_score,
     f1_score,
@@ -108,9 +111,12 @@ def main() -> None:
     except Exception:
         git_commit = "unknown"
 
+    raw_df = pd.read_csv(DATA_PATH)
+    int_cols = raw_df.select_dtypes(include="integer").columns
+    raw_df[int_cols] = raw_df[int_cols].astype("float64")
     mlflow_dataset = mlflow.data.from_pandas(
-        pd.read_csv(DATA_PATH),
-        source=DATA_PATH,
+        raw_df,
+        source=LocalArtifactDatasetSource(DATA_PATH),
         name="telco-churn",
         targets="Churn",
     )
@@ -212,7 +218,18 @@ def main() -> None:
         for name, value in test_metrics.items():
             logger.info("%s: %.4f", name, value)
 
-        mlflow.pytorch.log_model(model, name="model")
+        input_example = torch.tensor(X_train_t[:4], dtype=torch.float32)
+        signature = ModelSignature(
+            inputs=Schema([TensorSpec(np.dtype("float32"), (-1, input_dim))]),
+            outputs=Schema([TensorSpec(np.dtype("float32"), (-1, 1))]),
+        )
+        mlflow.pytorch.log_model(
+            model,
+            name="model",
+            serialization_format="pt2",
+            input_example=input_example,
+            signature=signature,
+        )
         mlflow.log_artifact(str(MODELS_DIR / "mlp_best.pt"))
 
 
