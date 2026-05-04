@@ -1,6 +1,6 @@
 import pandas as pd
-import pandera as pa
-from pandera import Column, DataFrameSchema
+import pandera.pandas as pa
+from pandera.pandas import Column, DataFrameSchema
 
 DATA_PATH = "data/raw/telco-churn.csv"
 
