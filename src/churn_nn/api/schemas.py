@@ -20,6 +20,8 @@ class CustomerFeatures(BaseModel):
     MonthlyCharges: float = Field(ge=0)
     TotalCharges: float = Field(ge=0)
     SeniorCitizen: Literal[0, 1]
+    # gender e PhoneService estão no schema para compatibilidade com o dataset
+    # original; são descartados pelo preprocessor (Cramér's V ≈ 0 com churn)
     gender: Literal["Male", "Female"]
     Partner: YesNo
     Dependents: YesNo

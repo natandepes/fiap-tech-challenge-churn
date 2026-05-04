@@ -20,8 +20,8 @@ from churn_nn.models.mlp import ChurnMLP
 
 logger = logging.getLogger(__name__)
 
-MODEL_VERSION = "mlp_best"
-MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
+_DEFAULT_MODELS_DIR = Path(__file__).resolve().parents[3] / "models"
+MODELS_DIR = Path(os.getenv("MODELS_DIR", _DEFAULT_MODELS_DIR))
 
 _state: dict[str, Any] = {}
 
@@ -36,7 +36,12 @@ def _load_artifacts() -> None:
     model.eval()
     _state["preprocessor"] = preprocessor
     _state["model"] = model
-    logger.info("Artefatos carregados. input_dim=%d", metadata["input_dim"])
+    _state["model_version"] = metadata.get("model_version", "unknown")
+    logger.info(
+        "Artefatos carregados. input_dim=%d version=%s",
+        metadata["input_dim"],
+        _state["model_version"],
+    )
 
 
 @asynccontextmanager
@@ -86,7 +91,7 @@ async def latency_middleware(request: Request, call_next):
 
 @app.get("/health")
 def health() -> dict:
-    return {"status": "ok", "model_version": MODEL_VERSION}
+    return {"status": "ok", "model_version": _state["model_version"]}
 
 
 def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
@@ -100,7 +105,7 @@ def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
         churn=prob >= THRESHOLD,
         probability=round(prob, 4),
         threshold=THRESHOLD,
-        model_version=MODEL_VERSION,
+        model_version=_state["model_version"],
     )
 
 

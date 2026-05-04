@@ -19,6 +19,7 @@ def test_predict_retorna_campos_esperados(client, sample_customer):
     assert "model_version" in data
     assert isinstance(data["churn"], bool)
     assert 0.0 <= data["probability"] <= 1.0
+    assert isinstance(data["model_version"], str) and data["model_version"]
 
 
 def test_predict_campo_faltando_retorna_422(client):

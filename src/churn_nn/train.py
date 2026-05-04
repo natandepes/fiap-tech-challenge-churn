@@ -26,7 +26,15 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, TensorDataset
 
-from churn_nn.config import THRESHOLD
+from churn_nn.config import (
+    BATCH_SIZE,
+    LR,
+    MAX_EPOCHS,
+    PATIENCE,
+    SEED,
+    THRESHOLD,
+    WEIGHT_DECAY,
+)
 from churn_nn.data.preprocessing import build_preprocessor, load_data
 from churn_nn.models.mlp import ChurnMLP
 
@@ -37,16 +45,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-SEED = 42
 DATA_PATH = "data/raw/telco-churn.csv"
 MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 MLFLOW_URI = "sqlite:///mlruns.db"
 EXPERIMENT_NAME = "telco-churn"
-BATCH_SIZE = 64
-MAX_EPOCHS = 100
-PATIENCE = 10
-LR = 1e-3
-WEIGHT_DECAY = 1e-4
 
 
 def set_seeds() -> None:
@@ -80,9 +82,6 @@ def main() -> None:
     X_test_t = preprocessor.transform(X_test)
     input_dim = X_train_t.shape[1]
     joblib.dump(preprocessor, MODELS_DIR / "preprocessor.pkl")
-    (MODELS_DIR / "model_metadata.json").write_text(
-        json.dumps({"input_dim": input_dim})
-    )
     logger.info("Preprocessor salvo em models/preprocessor.pkl")
     n_pos = int(y_train.sum())
     n_neg = len(y_train) - n_pos
@@ -126,6 +125,10 @@ def main() -> None:
     )
 
     with mlflow.start_run(run_name="mlp-pytorch"):
+        run_id = mlflow.active_run().info.run_id[:8]
+        (MODELS_DIR / "model_metadata.json").write_text(
+            json.dumps({"input_dim": input_dim, "model_version": run_id})
+        )
         mlflow.set_tags({
             "stage": "candidate",
             "model_type": "neural_network",
