@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -14,5 +15,5 @@ class ChurnMLP(nn.Module):
             nn.Linear(32, 1),
         )
 
-    def forward(self, x):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.net(x)
