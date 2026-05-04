@@ -43,6 +43,7 @@ Os experimentos são rastreados em um banco SQLite local (`mlruns.db`) gerado au
 Para abrir a UI do MLflow após treinar:
 
 ```bash
+source .venv/bin/activate
 mlflow ui --backend-store-uri sqlite:///mlruns.db
 ```
 
