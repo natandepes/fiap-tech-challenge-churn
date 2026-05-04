@@ -17,6 +17,7 @@ dependencies = [
     "numpy>=1.26",
     "pydantic>=2.7",
     "pandera>=0.19",
+    "joblib>=1.4",
 ]
 
 [project.optional-dependencies]
@@ -43,6 +44,9 @@ addopts = "-rs"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.churn_nn]
+model_version = "v1.0.0"
 
 [project.scripts]
 train-churn = "churn_nn.train:main"

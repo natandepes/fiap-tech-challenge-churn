@@ -3,6 +3,8 @@ import json
 import logging
 import random
 import subprocess
+import tomllib
+from pathlib import Path
 
 import joblib
 import mlflow
@@ -123,9 +125,11 @@ def main() -> None:
     )
 
     with mlflow.start_run(run_name="mlp-pytorch"):
-        run_id = mlflow.active_run().info.run_id[:8]
+        model_version = tomllib.loads(
+            (Path(__file__).parents[2] / "pyproject.toml").read_text()
+        )["tool"]["churn_nn"]["model_version"]
         (MODELS_DIR / "model_metadata.json").write_text(
-            json.dumps({"input_dim": input_dim, "model_version": run_id})
+            json.dumps({"input_dim": input_dim, "model_version": model_version})
         )
         mlflow.set_tags({
             "stage": "candidate",
