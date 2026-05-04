@@ -107,10 +107,14 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 - Teste: 1.057 registros (15%)
 
 **Pré-processamento:**
-- `TotalCharges`: convertida de object para float64; 11 registros com `tenure=0` preenchidos com 0
-- Numéricas (`tenure`, `MonthlyCharges`, `TotalCharges`): StandardScaler
-- Categóricas: OneHotEncoder com `drop="if_binary"` e `sparse_output=False`
+- `TotalCharges`: convertida de object para float64 (API aceita o campo); **removida do modelo** (r=0.83 com `tenure`, alta multicolinearidade)
+- `tenure`: **não entra diretamente** no modelo — substituída por 3 termos de interação Contract×tenure
+- `gender`, `PhoneService`: removidas (Cramér's V ≈ 0 com target na EDA)
 - `customerID`: removida (identificador, sem sinal preditivo)
+- **Termos de interação criados:** `monthly_x_tenure`, `one_year_x_tenure`, `two_year_x_tenure`
+- Numéricas (`MonthlyCharges` + 3 interações): StandardScaler → 4 features
+- Categóricas (14 variáveis): OneHotEncoder com `drop="if_binary"` e `sparse_output=False` → 35 features
+- **Input total ao modelo: 39 features**
 
 ---
 
@@ -124,7 +128,7 @@ Não foi conduzida análise de disparate impact, equalização de odds ou qualqu
 | **Fairness não auditada** | Média | Possível disparidade de performance por grupo demográfico (`gender`, `SeniorCitizen`) não investigada |
 | **Precisão abaixo da meta** | Baixa | 0.450 vs meta ≥ 0.55; consequência do threshold=0.4; aceitável dado o trade-off de custo documentado |
 | **Clientes novos (tenure=0)** | Baixa | Apenas 11 registros no treino; predições menos confiáveis para clientes recém-adquiridos |
-| **Multicolinearidade** | Baixa | `TotalCharges` e `tenure` têm r=+0.83; ambas presentes no modelo via StandardScaler |
+| **Multicolinearidade resolvida** | Baixa | `TotalCharges` removida (r=+0.83 com `tenure`); `tenure` substituída por 3 termos de interação Contract×tenure |
 
 ---
 

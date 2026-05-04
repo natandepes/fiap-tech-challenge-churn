@@ -48,6 +48,9 @@ Threshold rebaixado para 0.4 para priorizar recall: falsos negativos (churns nã
 **Pré-requisitos:** Python 3.11+, make
 
 ```bash
+# Criar virtualenv (obrigatório antes do make install)
+python3.11 -m venv .venv
+
 # Instalar dependências em virtualenv
 make install
 
@@ -81,7 +84,8 @@ Corrige TotalCharges, converte Churn → 0/1
     │
     ▼
 build_preprocessor()           ← src/churn_nn/data/preprocessing.py
-StandardScaler (numéricas) + OneHotEncoder (categóricas)
+Cria interações Contract×tenure (monthly_x_tenure, one_year_x_tenure, two_year_x_tenure)
+Remove tenure e TotalCharges; StandardScaler (4 numéricas) + OneHotEncoder (14 categóricas) → 39 features
     │
     ├── fit → models/preprocessor.pkl
     │

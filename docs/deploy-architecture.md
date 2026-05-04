@@ -56,8 +56,8 @@ A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer c
          │
          ▼
 [Pré-processamento]
-    preprocessor.pkl  (ColumnTransformer sklearn)
-    StandardScaler (numéricas) + OneHotEncoder (categóricas)
+    preprocessor.pkl  (Pipeline sklearn)
+    Interações Contract×tenure + StandardScaler + OneHotEncoder → 39 features
          │
          ▼
 [Inferência]
@@ -124,7 +124,7 @@ A API FastAPI já implementada serve casos pontuais: um agente de CRM que quer c
 
 | Componente | Opção |
 |---|---|
-| Container | Docker com `uvicorn src/churn_nn/api/app.py` |
+| Container | Docker com `uvicorn churn_nn.api.app:app --port 8000` |
 | Serving | Cloud Run (GCP), Railway, ou ECS Fargate (AWS) |
 | Health check | `GET /health` → `{"status": "ok", "model_version": "..."}` |
 | Escalabilidade | Autoscaling por CPU/requisições no serviço gerenciado |
