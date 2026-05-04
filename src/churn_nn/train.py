@@ -1,6 +1,7 @@
 # src/churn_nn/train.py
 import json
 import logging
+import os
 import random
 import subprocess
 from pathlib import Path
@@ -25,6 +26,7 @@ from sklearn.metrics import (
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader, TensorDataset
 
+from churn_nn.config import THRESHOLD
 from churn_nn.data.preprocessing import build_preprocessor, load_data
 from churn_nn.models.mlp import ChurnMLP
 
@@ -37,10 +39,9 @@ logger = logging.getLogger(__name__)
 
 SEED = 42
 DATA_PATH = "data/raw/telco-churn.csv"
-MODELS_DIR = Path("models")
+MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 MLFLOW_URI = "sqlite:///mlruns.db"
 EXPERIMENT_NAME = "telco-churn"
-THRESHOLD = 0.4
 BATCH_SIZE = 64
 MAX_EPOCHS = 100
 PATIENCE = 10

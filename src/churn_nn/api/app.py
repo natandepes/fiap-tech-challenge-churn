@@ -1,5 +1,7 @@
+import asyncio
 import json
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -13,13 +15,13 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from churn_nn.api.schemas import CustomerFeatures, PredictionResponse
+from churn_nn.config import THRESHOLD
 from churn_nn.models.mlp import ChurnMLP
 
 logger = logging.getLogger(__name__)
 
 MODEL_VERSION = "mlp_best"
-THRESHOLD = 0.4
-MODELS_DIR = Path("models")
+MODELS_DIR = Path(os.getenv("MODELS_DIR", "models"))
 
 _state: dict[str, Any] = {}
 
@@ -87,8 +89,7 @@ def health() -> dict:
     return {"status": "ok", "model_version": MODEL_VERSION}
 
 
-@app.post("/predict", response_model=PredictionResponse)
-def predict(customer: CustomerFeatures) -> PredictionResponse:
+def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
     df = pd.DataFrame([customer.model_dump()])
     X = _state["preprocessor"].transform(df)
     tensor = torch.tensor(X, dtype=torch.float32)
@@ -101,3 +102,9 @@ def predict(customer: CustomerFeatures) -> PredictionResponse:
         threshold=THRESHOLD,
         model_version=MODEL_VERSION,
     )
+
+
+@app.post("/predict", response_model=PredictionResponse)
+async def predict(customer: CustomerFeatures) -> PredictionResponse:
+    loop = asyncio.get_event_loop()
+    return await loop.run_in_executor(None, _run_inference, customer)
