@@ -1,4 +1,4 @@
-# src/churn_nn/api/app.py
+import json
 import logging
 import time
 from contextlib import asynccontextmanager
@@ -11,15 +11,10 @@ import torch
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
+from churn_nn.api.schemas import CustomerFeatures, PredictionResponse
 from churn_nn.models.mlp import ChurnMLP
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(name)s %(message)s",
-    force=True,
-)
 logger = logging.getLogger(__name__)
 
 MODEL_VERSION = "mlp_best"
@@ -30,45 +25,24 @@ _state: dict[str, Any] = {}
 
 
 def _load_artifacts() -> None:
+    metadata = json.loads((MODELS_DIR / "model_metadata.json").read_text())
     preprocessor = joblib.load(MODELS_DIR / "preprocessor.pkl")
-    dummy = pd.DataFrame(
-        [
-            {
-                "SeniorCitizen": 0,
-                "tenure": 1,
-                "MonthlyCharges": 1.0,
-                "TotalCharges": 1.0,
-                "gender": "Male",
-                "Partner": "No",
-                "Dependents": "No",
-                "PhoneService": "No",
-                "MultipleLines": "No phone service",
-                "InternetService": "DSL",
-                "OnlineSecurity": "No",
-                "OnlineBackup": "No",
-                "DeviceProtection": "No",
-                "TechSupport": "No",
-                "StreamingTV": "No",
-                "StreamingMovies": "No",
-                "Contract": "Month-to-month",
-                "PaperlessBilling": "Yes",
-                "PaymentMethod": "Electronic check",
-            }
-        ]
-    )
-    input_dim = preprocessor.transform(dummy).shape[1]
-    model = ChurnMLP(input_dim)
+    model = ChurnMLP(metadata["input_dim"])
     model.load_state_dict(
         torch.load(MODELS_DIR / "mlp_best.pt", map_location="cpu", weights_only=True)
     )
     model.eval()
     _state["preprocessor"] = preprocessor
     _state["model"] = model
-    logger.info("Artefatos carregados. input_dim=%d", input_dim)
+    logger.info("Artefatos carregados. input_dim=%d", metadata["input_dim"])
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(name)s %(message)s",
+    )
     _load_artifacts()
     yield
 
@@ -106,35 +80,6 @@ async def latency_middleware(request: Request, call_next):
         elapsed_ms,
     )
     return response
-
-
-class CustomerFeatures(BaseModel):
-    tenure: int
-    MonthlyCharges: float
-    TotalCharges: float
-    SeniorCitizen: int
-    gender: str
-    Partner: str
-    Dependents: str
-    PhoneService: str
-    MultipleLines: str
-    InternetService: str
-    OnlineSecurity: str
-    OnlineBackup: str
-    DeviceProtection: str
-    TechSupport: str
-    StreamingTV: str
-    StreamingMovies: str
-    Contract: str
-    PaperlessBilling: str
-    PaymentMethod: str
-
-
-class PredictionResponse(BaseModel):
-    churn: bool
-    probability: float
-    threshold: float
-    model_version: str
 
 
 @app.get("/health")
