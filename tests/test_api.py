@@ -1,4 +1,7 @@
 # tests/test_api.py
+import time
+
+import numpy as np
 
 
 def test_health_retorna_200(client):
@@ -75,3 +78,14 @@ def test_predict_risco_alto_maior_que_risco_baixo(client):
     prob_alto = client.post("/predict", json=alto_risco).json()["probability"]
     prob_baixo = client.post("/predict", json=baixo_risco).json()["probability"]
     assert prob_alto > prob_baixo
+
+
+def test_latencia_p95_abaixo_de_200ms(client, sample_customer):
+    """p95 de 100 requisições via TestClient (sem overhead de rede/uvicorn)."""
+    tempos = []
+    for _ in range(100):
+        start = time.perf_counter()
+        client.post("/predict", json=sample_customer)
+        tempos.append((time.perf_counter() - start) * 1000)
+    p95 = float(np.percentile(tempos, 95))
+    assert p95 < 200, f"p95 = {p95:.1f}ms — acima do limite de 200ms"
