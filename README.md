@@ -75,6 +75,20 @@ make run
 
 > **Atenção:** `make run` requer que `make train` tenha sido executado ao menos uma vez. Os artefatos de modelo (`models/`) não são versionados no repositório. Antes de treinar o modelo também não é possível executar todos os testes com `make test`.
 
+### Explorar os notebooks
+
+O Jupyter já é instalado pelo `make install`. Para abrir o JupyterLab, ative o virtualenv primeiro:
+
+```bash
+source .venv/bin/activate
+jupyter lab notebooks/
+```
+
+Os notebooks seguem a ordem de desenvolvimento:
+- `01-eda.ipynb`: análise exploratória e qualidade dos dados
+- `02-baselines.ipynb`: DummyClassifier e Regressão Logística
+- `03-mlp.ipynb`: arquitetura, treinamento e avaliação da MLP
+
 ---
 
 ## Arquitetura
