@@ -33,9 +33,8 @@ models/*.json
 mlruns/
 mlartifacts/
 
-# Data: versionar raw, ignorar processed (gerado pelo pipeline)
-data/processed/*
-!data/processed/.gitkeep
+# Data: versionar raw, processed gerado em memória (sem persistência em disco)
+data/processed/
 
 # Cobertura de testes e cache
 .pytest_cache/
