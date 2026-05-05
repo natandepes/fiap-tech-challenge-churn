@@ -109,12 +109,19 @@ def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
     with torch.no_grad():
         logit = _state["model"](tensor)
         prob = float(torch.sigmoid(logit).item())
-    return PredictionResponse(
+    prediction = PredictionResponse(
         churn=prob >= THRESHOLD,
         probability=round(prob, 4),
         threshold=THRESHOLD,
         model_version=_state["model_version"],
     )
+    logger.info(
+        "prediction churn=%s probability=%.4f model_version=%s",
+        prediction.churn,
+        prediction.probability,
+        prediction.model_version,
+    )
+    return prediction
 
 
 @app.post("/predict", response_model=PredictionResponse)
