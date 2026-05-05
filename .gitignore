@@ -1,4 +1,4 @@
-# IA context — não commitar
+# IA context
 CLAUDE.md
 docs/superpowers/
 
@@ -33,7 +33,7 @@ models/*.json
 mlruns/
 mlartifacts/
 
-# Data — manter estrutura, ignorar arquivos
+# Data: manter estrutura, ignorar arquivos
 data/raw/*
 data/processed/*
 !data/raw/.gitkeep

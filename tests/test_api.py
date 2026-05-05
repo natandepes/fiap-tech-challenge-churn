@@ -88,4 +88,4 @@ def test_latencia_p95_abaixo_de_200ms(client, sample_customer):
         client.post("/predict", json=sample_customer)
         tempos.append((time.perf_counter() - start) * 1000)
     p95 = float(np.percentile(tempos, 95))
-    assert p95 < 200, f"p95 = {p95:.1f}ms — acima do limite de 200ms"
+    assert p95 < 200, f"p95 = {p95:.1f}ms, acima do limite de 200ms"

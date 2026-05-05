@@ -191,7 +191,7 @@ def main() -> None:
 
             if epochs_without_improvement >= PATIENCE:
                 logger.info(
-                    "Early stopping na época %d — melhor val_loss: %.4f",
+                    "Early stopping na época %d, melhor val_loss: %.4f",
                     epoch,
                     best_val_loss,
                 )

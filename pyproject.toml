@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "churn-nn"
 version = "0.1.0"
-description = "Churn prediction MLP — FIAP PosTech Tech Challenge 1"
+description = "Churn prediction MLP: FIAP PosTech Tech Challenge 1"
 requires-python = ">=3.11"
 dependencies = [
     "torch>=2.3",
