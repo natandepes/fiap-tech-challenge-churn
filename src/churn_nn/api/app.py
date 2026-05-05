@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+import uuid
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -84,11 +85,15 @@ async def validation_exception_handler(
 
 @app.middleware("http")
 async def latency_middleware(request: Request, call_next):
+    request_id = str(uuid.uuid4())
+    request.state.request_id = request_id
     start = time.time()
     response = await call_next(request)
     elapsed_ms = (time.time() - start) * 1000
+    response.headers["X-Request-ID"] = request_id
     logger.info(
-        "method=%s path=%s status=%d latency_ms=%.1f",
+        "request_id=%s method=%s path=%s status=%d latency_ms=%.1f",
+        request_id,
         request.method,
         request.url.path,
         response.status_code,
@@ -102,7 +107,7 @@ def health() -> dict:
     return {"status": "ok", "model_version": _state["model_version"]}
 
 
-def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
+def _run_inference(customer: CustomerFeatures, request_id: str) -> PredictionResponse:
     df = pd.DataFrame([customer.model_dump()])
     X = _state["preprocessor"].transform(df)
     tensor = torch.tensor(X, dtype=torch.float32)
@@ -116,7 +121,8 @@ def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
         model_version=_state["model_version"],
     )
     logger.info(
-        "prediction churn=%s probability=%.4f model_version=%s",
+        "request_id=%s prediction churn=%s probability=%.4f model_version=%s",
+        request_id,
         prediction.churn,
         prediction.probability,
         prediction.model_version,
@@ -125,6 +131,8 @@ def _run_inference(customer: CustomerFeatures) -> PredictionResponse:
 
 
 @app.post("/predict", response_model=PredictionResponse)
-async def predict(customer: CustomerFeatures) -> PredictionResponse:
+async def predict(customer: CustomerFeatures, request: Request) -> PredictionResponse:
     loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(None, _run_inference, customer)
+    return await loop.run_in_executor(
+        None, _run_inference, customer, request.state.request_id
+    )
